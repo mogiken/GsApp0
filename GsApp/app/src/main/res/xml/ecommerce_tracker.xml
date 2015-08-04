@@ -1,0 +1,5 @@
+<resources>
+              <integer name="ga_sessionTimeout">60</integer>
+              <!-- 自分のトラッキングIDに設定-->
+              <string name="ga_trackingId">UA-65942603-1</string>
+</resources>

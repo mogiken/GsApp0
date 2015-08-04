@@ -1,0 +1,8 @@
+<resources>
+              <!-- How long a session exists before giving up -->
+              <integer name="ga_sessionTimeout">300</integer>
+              <!-- Enable automatic Activity measurement -->
+              <bool name="ga_autoActivityTracking">true</bool>
+              <!-- 自分のトラッキングIDに設定-->
+              <string name="ga_trackingId">UA-65942603-1</string>
+</resources>
