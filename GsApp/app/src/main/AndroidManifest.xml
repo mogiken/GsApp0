@@ -3,6 +3,7 @@
     package="com.gashfara.mogi.gsapp" >
 
     <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".VolleyApplication"
         android:allowBackup="true"
@@ -17,6 +18,10 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".WebActivity"
+            android:label="@string/title_activity_web" >
         </activity>
     </application>
 

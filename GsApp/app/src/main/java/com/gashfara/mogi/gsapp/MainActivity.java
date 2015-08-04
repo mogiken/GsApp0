@@ -101,6 +101,7 @@ public class MainActivity extends ActionBarActivity {
         return records;
     }
 
+
     //デフォルトで作成されたメニューの関数です。未使用。
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -18,5 +18,6 @@
         android:layout_weight="1"
         android:textAppearance="?android:textAppearanceLarge"
         tools:text="comment"
+        android:autoLink="web"
         android:id="@+id/text1"/>
 </LinearLayout>
