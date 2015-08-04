@@ -18,11 +18,17 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+import com.kii.cloud.abtesting.ExperimentNotAppliedException;
+import com.kii.cloud.abtesting.KiiExperiment;
+import com.kii.cloud.abtesting.Variation;
 import com.kii.cloud.storage.Kii;
 import com.kii.cloud.storage.KiiBucket;
 import com.kii.cloud.storage.KiiObject;
 import com.kii.cloud.storage.KiiUser;
 import com.kii.cloud.storage.callback.KiiQueryCallBack;
+import com.kii.cloud.storage.exception.app.AppException;
 import com.kii.cloud.storage.query.KiiClause;
 import com.kii.cloud.storage.query.KiiQuery;
 import com.kii.cloud.storage.query.KiiQueryResult;
@@ -31,6 +37,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,6 +80,8 @@ public class MainActivity extends ActionBarActivity {
         listView.setAdapter(mAdapter);
         //一覧のデータを作成して表示します。
         fetch();
+
+
     }
     //ListView2で追加ここから
     //KiiCLoud対応のfetchです。
@@ -120,6 +129,12 @@ public class MainActivity extends ActionBarActivity {
         super.onStart();
         //一覧のデータを作成して表示します。
         fetch();
+        //GrowthHackで追加ここから
+        //GAのスクリーン名はアクティビティーの名前を送信します。
+        Tracker t = ((VolleyApplication)getApplication()).getTracker(VolleyApplication.TrackerName.APP_TRACKER);
+        t.setScreenName(this.getClass().getSimpleName());
+        t.send(new HitBuilders.AppViewBuilder().build());
+        //GrowthHackで追加ここまで
     }
     //ListView2で追加ここまで
 
