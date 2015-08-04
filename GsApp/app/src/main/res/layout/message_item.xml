@@ -20,4 +20,10 @@
         tools:text="comment"
         android:autoLink="web"
         android:id="@+id/text1"/>
+    <!-- Goodで追加ここから-->
+    <Button android:id="@+id/button1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/good" />
+    <!-- Goodで追加ここまで-->
 </LinearLayout>
