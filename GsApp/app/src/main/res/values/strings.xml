@@ -4,15 +4,22 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_web">WebActivity</string>
+    <string name="title_activity_user">UserActivity</string>
     <!-- Userで追加ここから-->
     <string name="enter_username">Enter username (3-64 length)</string>
     <string name="enter_password">Enter password (4-50 length)</string>
     <string name="sign_up">Sign Up</string>
     <string name="log_in">Log In</string>
     <string name="operation_failed">Operation failed</string>
-    <string name="title_activity_user">UserActivity</string>
     <string name="save_data_name">DataSave</string>
     <string name="save_token">save_token</string>
     <!-- Userで追加ここまで-->
+    <string name="title_activity_post">PostActivity</string>
+    <!-- Postで追加ここから-->
+    <string name="attach_button">ImageAttach</string>
+    <string name="attach_camera_button">CameraAttach</string>
+    <string name="post_button">Post</string>
+    <string name="no_data_message">No Data</string>
+    <!-- Postで追加ここまで-->
 
 </resources>
