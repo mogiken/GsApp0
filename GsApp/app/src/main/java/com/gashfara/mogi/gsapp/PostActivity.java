@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -20,18 +21,29 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+import com.kii.cloud.abtesting.ExperimentNotAppliedException;
+import com.kii.cloud.abtesting.KiiExperiment;
+import com.kii.cloud.abtesting.Variation;
+import com.kii.cloud.analytics.KiiEvent;
 import com.kii.cloud.storage.Kii;
 import com.kii.cloud.storage.KiiBucket;
 import com.kii.cloud.storage.KiiObject;
 import com.kii.cloud.storage.callback.KiiObjectCallBack;
 import com.kii.cloud.storage.callback.KiiObjectPublishCallback;
 import com.kii.cloud.storage.exception.CloudExecutionException;
+import com.kii.cloud.storage.exception.app.AppException;
 import com.kii.cloud.storage.resumabletransfer.KiiRTransfer;
 import com.kii.cloud.storage.resumabletransfer.KiiRTransferCallback;
 import com.kii.cloud.storage.resumabletransfer.KiiUploader;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 
 public class PostActivity extends ActionBarActivity {
@@ -43,6 +55,8 @@ public class PostActivity extends ActionBarActivity {
     KiiObject mKiiImageObject = null;
     //入力したコメント
     String comment;
+
+    Variation va;//GrowthHack(ABテスト)修正。ABテストの結果のクラス
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +89,61 @@ public class PostActivity extends ActionBarActivity {
                 onPostButtonClicked(v);
             }
         });
+
+        new ABTestInfoFetchTask().execute();//GrowthHack(ABテスト)修正。ABテスト環境を非同期で設定する。
+
     }
+
+    //GrowthHack(ABテスト)追加ここから
+    //AsyncTaskを使って非同期でABテストの情報を取得し、画面に反映する。
+    public  class ABTestInfoFetchTask extends AsyncTask<Void, Void, KiiExperiment> {
+        //非同期の処理。returnでイベントにいろいろな値をわたせる
+        @Override
+        protected KiiExperiment doInBackground(Void... params) {
+            KiiExperiment experiment = null;
+            try {
+                //ABテストのIDを通知。自分のIDに変更してください。
+                experiment = KiiExperiment.getByID("7863b290-3aa6-11e5-b7f3-12315004bae2");
+            } catch (Exception e) {
+                Log.d("A/B test failed.", e.getLocalizedMessage());
+            }
+            return experiment;
+        }
+        //doInBackgroundが実行された後に自動的に実行される。
+        @Override
+        protected void onPostExecute(KiiExperiment experiment) {
+            String postText = "post";
+            try {
+                //ABテストのテスト結果(AまたはBの情報)を得る。ユーザごとに固定。Aの結果をもらったらずっとA。
+                va = experiment.getAppliedVariation();
+            } catch (ExperimentNotAppliedException e) {
+                Log.d("experiment failed.", e.getLocalizedMessage());
+                //エラーの時はAの情報を利用する。
+                va = experiment.getVariationByName("A");
+            }
+            //結果のJSONデータを得る。
+            JSONObject test = va.getVariableSet();
+            try {
+                //ABテストで設定したpostTextの値を得る。postかsend
+                postText = test.getString("postText");
+                Log.d("Get postText",postText);
+            } catch (JSONException e) {
+            }
+            //postボタンを探す
+            Button buttonView = (Button) findViewById(R.id.post_button);
+            //ABテストの文字をセット
+            buttonView.setText(postText);
+            //ABテストの表示のイベントを送る。eventViewedに集計される。
+            KiiEvent viewEvent = va.eventForConversion(getApplicationContext(),"eventViewed");
+            try {
+                viewEvent.push();
+                Log.d("viewEvent","now");
+            } catch (IOException e) {
+            }
+        }
+    }
+    //GrowthHack(ABテスト)追加ここまで
+
     //画像の添付ボタンをおした時の処理
     public void onAttachFileButtonClicked(View v) {
         //ギャラリーを開くインテントを作成して起動する。
@@ -204,6 +272,16 @@ public class PostActivity extends ActionBarActivity {
             //画像がないときはcommentだけ登録
             postMessages(null);
         }
+
+        //GrowthHack(ABテスト)追加ここから
+        //ABテストのクリックのイベントを送る。eventClickedに集計される。
+        KiiEvent clickEvent = va.eventForConversion(getApplicationContext(),"eventClicked");
+        try {
+            clickEvent.push();
+            Log.d("eventClicked","now");
+        } catch (IOException e) {
+        }
+        //GrowthHack(ABテスト)追加ここまで
     }
     //投稿処理。画像のUploadがうまくいったときは、urlに公開のURLがセットされる
     public void postMessages(String url) {
@@ -290,6 +368,16 @@ public class PostActivity extends ActionBarActivity {
         DialogFragment newFragment = AlertDialogFragment.newInstance(R.string.operation_failed, message, null);
         newFragment.show(getFragmentManager(), "dialog");
     }
+
+    //GrowthHackで追加ここから
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Tracker t = ((VolleyApplication)getApplication()).getTracker(VolleyApplication.TrackerName.APP_TRACKER);
+        t.setScreenName(this.getClass().getSimpleName());
+        t.send(new HitBuilders.AppViewBuilder().build());
+    }
+    //GrowthHackで追加ここまで
 
 
     @Override
