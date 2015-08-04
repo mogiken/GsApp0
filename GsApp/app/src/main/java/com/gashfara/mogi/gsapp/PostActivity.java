@@ -223,8 +223,6 @@ public class PostActivity extends ActionBarActivity {
             public void onSaveCompleted(int token, KiiObject object, Exception exception) {
                 //エラーがないとき
                 if (exception == null) {
-                    // Intent のインスタンスを取得する。getApplicationContext()で自分のコンテキストを取得。遷移先のアクティビティーを.classで指定
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     //Activityを終了します。
                     finish();
                 } else {
