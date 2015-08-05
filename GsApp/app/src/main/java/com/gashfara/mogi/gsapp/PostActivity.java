@@ -172,6 +172,16 @@ public class PostActivity extends ActionBarActivity {
                 return false;
             }
         }
+        //送信後の結果
+        @Override
+        protected void onPostExecute(Boolean result) {
+            // 成功失敗によらず、ログ出力のみで結果をユーザに通知はしない。
+            if (result) {
+                Log.d("AB　send ok", eventName);
+            } else {
+                Log.d("AB　send ng", eventName);
+            }
+        }
     }
     //GrowthHack(ABテスト)追加ここまで
 
