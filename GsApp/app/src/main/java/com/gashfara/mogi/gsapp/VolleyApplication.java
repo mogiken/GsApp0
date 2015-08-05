@@ -62,7 +62,7 @@ public class VolleyApplication extends Application {
         //KiiCloudの初期化。Applicationクラスで実行してください。キーは自分の値にかえる。
         Kii.initialize(getApplicationContext(), "80dd6a22", "f74778c9d5280992913b93ed39ec0f5a", Kii.Site.JP);
         //Userで追加ここまで
-        KiiAnalytics.initialize(this, "80dd6a22", "f74778c9d5280992913b93ed39ec0f5a", KiiAnalytics.Site.JP);
+        //KiiAnalytics.initialize(this, "80dd6a22", "f74778c9d5280992913b93ed39ec0f5a", KiiAnalytics.Site.JP);
 
     }
     //インスタンスを返す関数（メソッドです）。クラスの中にある変数はこのように関数を通じて返すようにするのが一般的です。

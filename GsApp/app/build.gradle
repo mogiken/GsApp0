@@ -29,9 +29,9 @@ dependencies {
     compile 'com.android.support:appcompat-v7:21.0.3'
     compile project(':modules:volley')
     //mogi add　
-    compile 'com.example.library:android-cloud-sdk-v2.1.36@aar'
+    compile 'com.example.library:android-cloud-sdk-v2.2.0@aar'
     compile 'com.squareup.okhttp:okhttp:2.3.0'
     compile 'com.squareup.okhttp:okhttp-apache:2.3.0'
     compile 'com.google.android.gms:play-services:6.5.87'
-    compile 'com.example.library:android-analytics-sdk-v2.1.8@aar'
+//    compile 'com.example.library:android-analytics-sdk-v2.1.8@aar'
 }
