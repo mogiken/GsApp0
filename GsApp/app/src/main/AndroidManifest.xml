@@ -37,6 +37,11 @@
             android:name=".PostActivity"
             android:label="@string/title_activity_post" >
         </activity>
+        <!--adで追加ここから-->
+        <activity android:name="com.google.android.gms.ads.AdActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:theme="@android:style/Theme.Translucent" />
+        <!--adで追加ここまで-->
     </application>
 
 </manifest>
