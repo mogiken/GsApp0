@@ -56,7 +56,7 @@ public class PostActivity extends ActionBarActivity {
     //入力したコメント
     String comment;
 
-    Variation va;//GrowthHack(ABテスト)修正。ABテストの結果のクラス
+    KiiExperiment experiment = null;//GrowthHack(ABテスト)修正。ABテストクラス。
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,12 +95,11 @@ public class PostActivity extends ActionBarActivity {
     }
 
     //GrowthHack(ABテスト)追加ここから
-    //AsyncTaskを使って非同期でABテストの情報を取得し、画面に反映する。
+    //AsyncTaskを使って非同期でABテストの情報を取得し、画面に反映する。参考：http://gihyo.jp/dev/serial/01/mbaas/0013
     public  class ABTestInfoFetchTask extends AsyncTask<Void, Void, KiiExperiment> {
         //非同期の処理。returnでイベントにいろいろな値をわたせる
         @Override
         protected KiiExperiment doInBackground(Void... params) {
-            KiiExperiment experiment = null;
             try {
                 //ABテストのIDを通知。自分のIDに変更してください。
                 experiment = KiiExperiment.getByID("7863b290-3aa6-11e5-b7f3-12315004bae2");
@@ -112,7 +111,8 @@ public class PostActivity extends ActionBarActivity {
         //doInBackgroundが実行された後に自動的に実行される。
         @Override
         protected void onPostExecute(KiiExperiment experiment) {
-            String postText = "post";
+            Variation va;//ABテストの結果のクラス
+            String postText = "post";//表示する文字。
             try {
                 //ABテストのテスト結果(AまたはBの情報)を得る。ユーザごとに固定。Aの結果をもらったらずっとA。
                 va = experiment.getAppliedVariation();
@@ -134,11 +134,42 @@ public class PostActivity extends ActionBarActivity {
             //ABテストの文字をセット
             buttonView.setText(postText);
             //ABテストの表示のイベントを送る。eventViewedに集計される。
-            KiiEvent viewEvent = va.eventForConversion(getApplicationContext(),"eventViewed");
+            new SendABTestEventTask("eventViewed").execute();
+        }
+    }
+    //ABテストのイベントを非同期で送信するクラス
+    private class SendABTestEventTask extends AsyncTask<Void, Void, Boolean> {
+
+        private String eventName;
+        private KiiEvent event;
+
+        private SendABTestEventTask(String eventName) {
+            this.eventName = eventName;
             try {
-                viewEvent.push();
-                Log.d("viewEvent","now");
+                //ABテストのクラスがあれば、イベント名を送信
+                if (experiment != null) {
+                    Variation variation = experiment.getAppliedVariation();
+                    event = variation
+                            .eventForConversion(getApplicationContext(), eventName);
+                }
+            } catch (Exception ignore) {
+                // eventがセットされない(null)であることを失敗とみなす。
+            }
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            if (event == null) {
+                return false;
+            }
+            try {
+                //送信
+                event.push();
+                Log.d("ABTestEvent Send",eventName);
+                return true;
             } catch (IOException e) {
+                e.printStackTrace();
+                return false;
             }
         }
     }
@@ -275,12 +306,7 @@ public class PostActivity extends ActionBarActivity {
 
         //GrowthHack(ABテスト)追加ここから
         //ABテストのクリックのイベントを送る。eventClickedに集計される。
-        KiiEvent clickEvent = va.eventForConversion(getApplicationContext(),"eventClicked");
-        try {
-            clickEvent.push();
-            Log.d("eventClicked","now");
-        } catch (IOException e) {
-        }
+        new SendABTestEventTask("eventClicked").execute();
         //GrowthHack(ABテスト)追加ここまで
     }
     //投稿処理。画像のUploadがうまくいったときは、urlに公開のURLがセットされる
