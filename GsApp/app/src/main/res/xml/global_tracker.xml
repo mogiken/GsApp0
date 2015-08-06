@@ -5,5 +5,4 @@
               <bool name="ga_autoActivityTracking">true</bool>
               <!-- 自分のトラッキングIDに設定-->
               <string name="ga_trackingId">UA-65942603-1</string>
-              <bool name="ga_reportUncaughtExceptions">true</bool>
 </resources>

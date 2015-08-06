@@ -18,6 +18,7 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.crittercism.app.Crittercism;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.analytics.HitBuilders;
@@ -91,6 +92,11 @@ public class MainActivity extends ActionBarActivity {
         //広告を表示
         mAdView.loadAd(adRequest);
         //adで追加ここまで
+        //ad(クラッシュ)で追加ここから
+        //Crittercismの初期化。IDの部分は自分のアプリのIDにしてください。
+        Crittercism.initialize(getApplicationContext(), "55c1cb05985ec40d0002c4c9");
+        //mAdapter = null; //クラッシュさせたいとき
+        //ad(クラッシュ)で追加ここまで
     }
     //ListView2で追加ここから
     //KiiCLoud対応のfetchです。
