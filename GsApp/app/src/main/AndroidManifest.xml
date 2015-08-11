@@ -15,9 +15,6 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version"/>
-        <!--GrowthHackで追加ここから -->
-        <service android:name = "com.kii.cloud.analytics.EventUploadService" />
-        <!--GrowthHackで追加ここまで -->
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name" >
@@ -39,6 +36,9 @@
             android:name=".PostActivity"
             android:label="@string/title_activity_post" >
         </activity>
+        <!--GrowthHack(ABテスト)で追加ここから-->
+        <service android:name = "com.kii.cloud.analytics.EventUploadService" />
+        <!--GrowthHack(ABテスト)で追加ここまで-->
     </application>
 
 </manifest>
