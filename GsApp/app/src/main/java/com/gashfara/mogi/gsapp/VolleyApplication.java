@@ -60,7 +60,7 @@ public class VolleyApplication extends Application {
         sInstance = this;
         //Userで追加ここから
         //KiiCloudの初期化。Applicationクラスで実行してください。キーは自分の値にかえる。
-        Kii.initialize(getApplicationContext(), "80dd6a22", "f74778c9d5280992913b93ed39ec0f5a", Kii.Site.JP);
+        Kii.initialize(getApplicationContext(), "80dd6a22", "f74778c9d5280992913b93ed39ec0f5a", Kii.Site.JP,true);//GrowthHack(ABテスト)修正。trueを追加してKiiAnalyticsを有効にする。
         //Userで追加ここまで
 
     }
