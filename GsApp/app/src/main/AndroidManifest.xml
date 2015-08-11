@@ -41,9 +41,9 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:theme="@android:style/Theme.Translucent" />
         <!--adで追加ここまで-->
-        <!--GrowthHackで追加ここから-->
+        <!--GrowthHack(ABテスト)で追加ここから-->
         <service android:name = "com.kii.cloud.analytics.EventUploadService" />
-        <!--GrowthHackで追加ここまで-->
+        <!--GrowthHack(ABテスト)で追加ここまで-->
     </application>
 
 </manifest>
