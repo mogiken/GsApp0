@@ -33,5 +33,4 @@ dependencies {
     compile 'com.squareup.okhttp:okhttp:2.3.0'
     compile 'com.squareup.okhttp:okhttp-apache:2.3.0'
     compile 'com.google.android.gms:play-services:6.5.87'
-//    compile 'com.example.library:android-analytics-sdk-v2.1.8@aar'
 }
