@@ -116,8 +116,8 @@ public class PostActivity extends ActionBarActivity {
             try {
                 //ABテストのテスト結果(AまたはBの情報)を得る。ユーザごとに固定。Aの結果をもらったらずっとA。
                 va = experiment.getAppliedVariation();
-            } catch (ExperimentNotAppliedException e) {
-                Log.d("experiment failed.", e.getLocalizedMessage());
+            } catch (Exception e) {
+                Log.d("A/B experiment failed.", e.getLocalizedMessage());
                 //エラーの時はAの情報を利用する。
                 va = experiment.getVariationByName("A");
             }
@@ -126,7 +126,7 @@ public class PostActivity extends ActionBarActivity {
             try {
                 //ABテストで設定したpostTextの値を得る。postかsend
                 postText = test.getString("postText");
-                Log.d("Get postText",postText);
+                Log.d("A/B Get postText",postText);
             } catch (JSONException e) {
             }
             //postボタンを探す
@@ -141,7 +141,7 @@ public class PostActivity extends ActionBarActivity {
     private class SendABTestEventTask extends AsyncTask<Void, Void, Boolean> {
 
         private String eventName;
-        private KiiEvent event;
+        private KiiEvent event=null;
 
         private SendABTestEventTask(String eventName) {
             this.eventName = eventName;
@@ -151,9 +151,12 @@ public class PostActivity extends ActionBarActivity {
                     Variation variation = experiment.getAppliedVariation();
                     event = variation
                             .eventForConversion(getApplicationContext(), eventName);
+                    Log.d("A/B eventname Send",eventName);
                 }
-            } catch (Exception ignore) {
+            } catch (Exception e) {
                 // eventがセットされない(null)であることを失敗とみなす。
+                Log.d("A/B eventname Send NG",eventName);
+                e.printStackTrace();
             }
         }
 
@@ -165,7 +168,7 @@ public class PostActivity extends ActionBarActivity {
             try {
                 //送信
                 event.push();
-                Log.d("ABTestEvent Send",eventName);
+                Log.d("A/B TestEvent Send",eventName);
                 return true;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -177,9 +180,9 @@ public class PostActivity extends ActionBarActivity {
         protected void onPostExecute(Boolean result) {
             // 成功失敗によらず、ログ出力のみで結果をユーザに通知はしない。
             if (result) {
-                Log.d("AB　send ok", eventName);
+                Log.d("A/B　send ok", eventName);
             } else {
-                Log.d("AB　send ng", eventName);
+                Log.d("A/B　send ng", eventName);
             }
         }
     }
