@@ -40,9 +40,11 @@ public class PostActivity extends ActionBarActivity {
     //画像のパスを保存しておく
     private String mImagePath = null;
     //UPした画像のKiiObject
-    KiiObject mKiiImageObject = null;
+    private KiiObject mKiiImageObject = null;
     //入力したコメント
-    String comment;
+    private String comment;
+    //カメラで撮影した画像のuri
+    private Uri mImageUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,11 +92,26 @@ public class PostActivity extends ActionBarActivity {
     //カメラの添付ボタンをおした時の処理
     public void onAttachCameraFileButtonClicked(View v) {
         //カメラは機種依存が大きく、いろいろサンプルを見たほうが良い
+        //コメントはXperia用に作ったもの。不要。
         //カメラのインテントを作成
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        //カメラの画像はこの変数に保存される
+        //Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         //Activityを起動
-        startActivityForResult(Intent.createChooser(intent, "Camera"), IMAGE_CHOOSER_RESULTCODE);
+        //startActivityForResult(Intent.createChooser(intent, "Camera"), IMAGE_CHOOSER_RESULTCODE);
+        //現在時刻をもとに一時ファイル名を作成
+        String filename = System.currentTimeMillis() + ".jpg";
+        //設定を保存するパラメータを作成
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.TITLE, filename);//ファイル名
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");//ファイルの種類
+        //設定した一時ファイルを作成
+        mImageUri = getContentResolver().insert(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        //カメラのインテントを作成
+        Intent intent = new Intent();
+        intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);//カメラ
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);//画像の保存先
+        //インテント起動
+        startActivityForResult(intent, IMAGE_CHOOSER_RESULTCODE);
     }
     //画像を選択した後に実行されるコールバック関数。インテントの実行された後にコールバックされる。自動的に実行されます。
     @Override
@@ -102,13 +119,19 @@ public class PostActivity extends ActionBarActivity {
         //他のインテントの実行結果と区別するためstartActivityで指定した定数IMAGE_CHOOSER_RESULTCODEと一致するか確認
         if (requestCode == IMAGE_CHOOSER_RESULTCODE) {
             //失敗の時
-            if (resultCode != RESULT_OK || data == null) {
+            if (resultCode != RESULT_OK ) {
                 return;
             }
 
-            //画像を取得する。カメラの時はmPictureUriにセットされる
-            Uri result =  data.getData();
-                //画面に画像を表示
+            //画像を取得する。Xperiaの場合はdataに画像が入っている。それ以外はintentで設定したmImageUriに入っている。
+            Uri result;
+            if(data != null) {
+                result = data.getData();
+            }else {
+                result = mImageUri;
+                Log.d("mogi:mImageUri:",result.toString());
+            }
+            //画面に画像を表示
             ImageView iv = (ImageView) findViewById(R.id.image_view1);
             iv.setImageURI(result);
 
