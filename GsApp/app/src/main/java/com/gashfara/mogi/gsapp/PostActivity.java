@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -20,6 +21,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+import com.kii.cloud.abtesting.KiiExperiment;
+import com.kii.cloud.abtesting.Variation;
+import com.kii.cloud.analytics.KiiEvent;
 import com.kii.cloud.storage.Kii;
 import com.kii.cloud.storage.KiiBucket;
 import com.kii.cloud.storage.KiiObject;
@@ -30,8 +36,12 @@ import com.kii.cloud.storage.resumabletransfer.KiiRTransfer;
 import com.kii.cloud.storage.resumabletransfer.KiiRTransferCallback;
 import com.kii.cloud.storage.resumabletransfer.KiiUploader;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 
 public class PostActivity extends ActionBarActivity {
@@ -45,6 +55,8 @@ public class PostActivity extends ActionBarActivity {
     private String comment;
     //カメラで撮影した画像のuri
     private Uri mImageUri;
+    KiiExperiment experiment = null;//GrowthHack(ABテスト)修正。ABテストクラス。
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +89,103 @@ public class PostActivity extends ActionBarActivity {
                 onPostButtonClicked(v);
             }
         });
+        new ABTestInfoFetchTask().execute();//GrowthHack(ABテスト)修正。ABテスト環境を非同期で設定する。
     }
+    //GrowthHack(ABテスト)追加ここから
+    //AsyncTaskを使って非同期でABテストの情報を取得し、画面に反映する。参考：http://gihyo.jp/dev/serial/01/mbaas/0013
+    public  class ABTestInfoFetchTask extends AsyncTask<Void, Void, KiiExperiment> {
+        //非同期の処理。returnでイベントにいろいろな値をわたせる
+        @Override
+        protected KiiExperiment doInBackground(Void... params) {
+            try {
+                //ABテストのIDを通知。自分のIDに変更してください。
+                experiment = KiiExperiment.getByID("7863b290-3aa6-11e5-b7f3-12315004bae2");
+            } catch (Exception e) {
+                Log.d("A/B test failed.", e.getLocalizedMessage());
+            }
+            return experiment;
+        }
+        //doInBackgroundが実行された後に自動的に実行される。
+        @Override
+        protected void onPostExecute(KiiExperiment experiment) {
+            Variation va;//ABテストの結果のクラス
+            String postText = "post";//表示する文字。
+            try {
+                //ABテストのテスト結果(AまたはBの情報)を得る。ユーザごとに固定。Aの結果をもらったらずっとA。
+                va = experiment.getAppliedVariation();
+            } catch (Exception e) {
+                Log.d("A/B experiment failed.", e.getLocalizedMessage());
+                //エラーの時はAの情報を利用する。
+                va = experiment.getVariationByName("A");
+            }
+            //結果のJSONデータを得る。
+            JSONObject test = va.getVariableSet();
+            try {
+                //ABテストで設定したpostTextの値を得る。postかsend
+                postText = test.getString("postText");
+                Log.d("A/B Get postText",postText);
+            } catch (JSONException e) {
+            }
+            //postボタンを探す
+            Button buttonView = (Button) findViewById(R.id.post_button);
+            //ABテストの文字をセット
+            buttonView.setText(postText);
+            //ABテストの表示のイベントを送る。eventViewedに集計される。
+            new SendABTestEventTask("eventViewed").execute();
+        }
+    }
+    //ABテストのイベントを非同期で送信するクラス
+    private class SendABTestEventTask extends AsyncTask<Void, Void, Boolean> {
+
+        private String eventName;
+        private KiiEvent event=null;
+
+        private SendABTestEventTask(String eventName) {
+            this.eventName = eventName;
+            try {
+                //ABテストのクラスがあれば、イベント名を送信
+                if (experiment != null) {
+                    Variation variation = experiment.getAppliedVariation();
+                    event = variation
+                            .eventForConversion(getApplicationContext(), eventName);
+                    Log.d("A/B eventname Send",eventName);
+                }
+            } catch (Exception e) {
+                // eventがセットされない(null)であることを失敗とみなす。
+                Log.d("A/B eventname Send NG",eventName);
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            if (event == null) {
+                return false;
+            }
+            try {
+                //送信
+                event.push();
+                Log.d("A/B TestEvent Send",eventName);
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        //送信後の結果
+        @Override
+        protected void onPostExecute(Boolean result) {
+            // 成功失敗によらず、ログ出力のみで結果をユーザに通知はしない。
+            if (result) {
+                Log.d("A/B　send ok", eventName);
+            } else {
+                Log.d("A/B　send ng", eventName);
+            }
+        }
+    }
+    //GrowthHack(ABテスト)追加ここまで
+
+
     //画像の添付ボタンをおした時の処理
     public void onAttachFileButtonClicked(View v) {
         //ギャラリーを開くインテントを作成して起動する。
@@ -227,6 +335,12 @@ public class PostActivity extends ActionBarActivity {
             //画像がないときはcommentだけ登録
             postMessages(null);
         }
+
+        //GrowthHack(ABテスト)追加ここから
+        //ABテストのクリックのイベントを送る。eventClickedに集計される。
+        new SendABTestEventTask("eventClicked").execute();
+        //GrowthHack(ABテスト)追加ここまで
+
     }
     //投稿処理。画像のUploadがうまくいったときは、urlに公開のURLがセットされる
     public void postMessages(String url) {
@@ -315,6 +429,16 @@ public class PostActivity extends ActionBarActivity {
         DialogFragment newFragment = AlertDialogFragment.newInstance(R.string.operation_failed, message, null);
         newFragment.show(getFragmentManager(), "dialog");
     }
+
+    //GrowthHackで追加ここから
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Tracker t = ((VolleyApplication)getApplication()).getTracker(VolleyApplication.TrackerName.APP_TRACKER);
+        t.setScreenName(this.getClass().getSimpleName());
+        t.send(new HitBuilders.AppViewBuilder().build());
+    }
+    //GrowthHackで追加ここまで
 
 
     @Override
